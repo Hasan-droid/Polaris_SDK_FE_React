@@ -15,13 +15,75 @@ import {
   Button,
   Grid,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import uploadCloud from "../assets/uploadCloud.png";
 import WarningsCard from "./WarningsCard";
 import Stepper from "./Stepper";
+import axios from "axios";
+import { EventSourcePolyfill } from "event-source-polyfill";
+
+interface EventSourceError extends Event {
+  error: {
+    message: string;
+    stack: string;
+  };
+}
 
 function ProcessApplication() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [itemClicked, setItemClicked] = useState(false);
+
+  const setupEventSourceConnection = async (token: string) => {
+    try {
+      const eventSource = new EventSourcePolyfill(import.meta.env.VITE_SERVER_URL + "/services/sse", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      eventSource.onopen = (event) => {
+        console.log("event", event);
+      };
+      eventSource.onmessage = (event) => {
+        console.log("event", event);
+      };
+      eventSource.onerror = (error) => {
+        const eventError = error as EventSourceError;
+        if (eventError.error.message.includes("No activity within 45000 milliseconds")) {
+          console.log("EventSource Connection Closed due to inactivity");
+          eventSource.close();
+        } else {
+          console.error("EventSource failed:", error);
+          eventSource.close();
+        }
+      };
+    } catch (err) {
+      console.log("Error setting up EventSource Connection", err);
+    }
+  };
+
+  const handleClick = async () => {
+    // setItemClicked(true);
+    const bodyData = {
+      pat: "7Tsbdz362meSQVE8YzfKp3FaL4XHNgappmih8KSXWxXHi9h2AfsCvLSY537WwTJAFqJ1WPzMXXXjLQfmLLjC6f2wrEvpDrVzkZkV",
+      appId: "163b0cee-8f29-452a-84d1-8b986db9fcde",
+      sdkTask: "warning",
+      taskCode: "cw0080",
+    };
+    try {
+      const serverResponse = await axios.post(import.meta.env.VITE_SERVER_URL + "/services/", bodyData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      if (serverResponse.status === 200) {
+        console.log("Data Posted Successfully", serverResponse.data);
+        setupEventSourceConnection(serverResponse.data.token);
+      }
+    } catch (err) {
+      console.log("Error posting Data", err);
+    }
+  };
   return (
     <>
       <Box
@@ -98,8 +160,8 @@ function ProcessApplication() {
                 Found Warnings
               </Text>
               <Grid templateColumns="repeat(3, 1fr)" gap={6}>
-                <WarningsCard />
-                <WarningsCard />
+                <WarningsCard itemClicked={itemClicked} handleClick={handleClick} />
+                <WarningsCard itemClicked={itemClicked} handleClick={handleClick} />
               </Grid>
               <Text fontSize={"xl"} fontWeight="bold" textAlign="left" mb={"4"} mt={"4"}>
                 Processing...
