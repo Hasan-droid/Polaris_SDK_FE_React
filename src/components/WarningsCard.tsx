@@ -1,6 +1,20 @@
 import { Card, CardBody, Stack, Text, Divider, Button } from "@chakra-ui/react";
+import { css } from "@emotion/react";
 
-function WarningsCard() {
+interface WarningsCardProps {
+  itemClicked: boolean;
+  handleClick: () => void;
+}
+
+const extendedStyles = css`
+  &:hover:disabled {
+    background-color: #4a5568; /* Change the background color to red */
+    color: white;
+    cursor: not-allowed;
+  }
+`;
+
+function WarningsCard({ itemClicked, handleClick }: WarningsCardProps) {
   return (
     <Card maxW="xs" boxShadow={"lg"} border={"1px"} borderColor={"gray.200"}>
       <CardBody m={"-3"}>
@@ -18,7 +32,7 @@ function WarningsCard() {
               view.
             </Text>
           </Stack>
-          <Button variant={"brand"}>
+          <Button css={extendedStyles} variant="brand" isDisabled={itemClicked} onClick={() => handleClick()}>
             <Text m={"20"} fontSize={"xs"} fontWeight="bold">
               Clean
             </Text>
