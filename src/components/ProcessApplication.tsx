@@ -32,6 +32,8 @@ interface EventSourceError extends Event {
 function ProcessApplication() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [itemClicked, setItemClicked] = useState(false);
+  const [showStepper, setShowStepper] = useState(false);
+  const [currentStep, setCurrentStep] = useState("");
 
   const setupEventSourceConnection = async (token: string) => {
     try {
@@ -46,6 +48,15 @@ function ProcessApplication() {
       };
       eventSource.onmessage = (event) => {
         console.log("event", event);
+        const eventType = event.data.split(":")[1];
+        if (eventType === "info") {
+          const eventData = event.data.split(":")[3];
+          console.log("eventData", eventData);
+          setCurrentStep(eventData);
+        } else {
+          //received error event
+          console.log("Error Event", event.data);
+        }
       };
       eventSource.onerror = (error) => {
         const eventError = error as EventSourceError;
@@ -64,6 +75,8 @@ function ProcessApplication() {
 
   const handleClick = async () => {
     // setItemClicked(true);
+    setCurrentStep("verifying user");
+    setShowStepper(true);
     const bodyData = {
       pat: "7Tsbdz362meSQVE8YzfKp3FaL4XHNgappmih8KSXWxXHi9h2AfsCvLSY537WwTJAFqJ1WPzMXXXjLQfmLLjC6f2wrEvpDrVzkZkV",
       appId: "163b0cee-8f29-452a-84d1-8b986db9fcde",
@@ -78,6 +91,7 @@ function ProcessApplication() {
       });
       if (serverResponse.status === 200) {
         console.log("Data Posted Successfully", serverResponse.data);
+        setCurrentStep("user verified");
         setupEventSourceConnection(serverResponse.data.token);
       }
     } catch (err) {
@@ -163,10 +177,14 @@ function ProcessApplication() {
                 <WarningsCard itemClicked={itemClicked} handleClick={handleClick} />
                 <WarningsCard itemClicked={itemClicked} handleClick={handleClick} />
               </Grid>
-              <Text fontSize={"xl"} fontWeight="bold" textAlign="left" mb={"4"} mt={"4"}>
-                Processing...
-              </Text>
-              <Stepper currentStep="start processing" />
+              {showStepper && (
+                <>
+                  <Text fontSize={"xl"} fontWeight="bold" textAlign="left" mb={"4"} mt={"4"}>
+                    Processing...
+                  </Text>
+                  <Stepper currentStep={currentStep} />
+                </>
+              )}
               <p>Warnings!</p>
             </TabPanel>
             <TabPanel>
