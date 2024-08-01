@@ -15,12 +15,13 @@ function Stepper({ currentStep }: { currentStep: string }) {
           border={"2px"}
           borderColor="gray.200"
           borderRadius={18}
-          p={5}
+          p={2}
           mb={5}
           boxShadow="lg"
           background="white"
+          width={"fit-content"}
         >
-          <Text fontSize={"xl"} fontWeight="bold" textAlign="left" mb={"4"}>
+          <Text fontSize={"lg"} fontWeight="bold" textAlign="left">
             {step}
           </Text>
         </Box>

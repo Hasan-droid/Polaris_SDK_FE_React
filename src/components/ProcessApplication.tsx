@@ -15,7 +15,7 @@ import {
   Button,
   Grid,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import uploadCloud from "../assets/uploadCloud.png";
 import WarningsCard from "./WarningsCard";
 import Stepper from "./Stepper";
@@ -47,12 +47,12 @@ function ProcessApplication() {
         console.log("event", event);
       };
       eventSource.onmessage = (event) => {
-        console.log("event", event);
-        const eventType = event.data.split(":")[1];
+        const [prefix, eventType, prefix2, eventData] = event.data.split(":");
         if (eventType === "info") {
-          const eventData = event.data.split(":")[3];
-          console.log("eventData", eventData);
           setCurrentStep(eventData);
+          if (eventData.toLowerCase() === "service completed") {
+            setItemClicked(false);
+          }
         } else {
           //received error event
           console.log("Error Event", event.data);
@@ -74,7 +74,7 @@ function ProcessApplication() {
   };
 
   const handleClick = async () => {
-    // setItemClicked(true);
+    setItemClicked(true);
     setCurrentStep("verifying user");
     setShowStepper(true);
     const bodyData = {
@@ -182,10 +182,11 @@ function ProcessApplication() {
                   <Text fontSize={"xl"} fontWeight="bold" textAlign="left" mb={"4"} mt={"4"}>
                     Processing...
                   </Text>
-                  <Stepper currentStep={currentStep} />
+                  <Grid templateColumns="repeat(3, 1fr)" gap={1}>
+                    <Stepper currentStep={currentStep} />
+                  </Grid>
                 </>
               )}
-              <p>Warnings!</p>
             </TabPanel>
             <TabPanel>
               <p>two!</p>
