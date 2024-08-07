@@ -11,29 +11,23 @@ import {
   Radio,
   RadioGroup,
   Stack,
-  Image,
-  Button,
   Grid,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import uploadCloud from "../assets/uploadCloud.png";
 import WarningsCard from "./WarningsCard";
 import Stepper from "./Stepper";
 import axios from "axios";
 import { EventSourcePolyfill } from "event-source-polyfill";
-
-interface EventSourceError extends Event {
-  error: {
-    message: string;
-    stack: string;
-  };
-}
+import FileUpload from "./FileUpload";
+import { ITaskCode, IEventSourceError } from "../types/processApplication.types";
+import { TaskCode } from "../utils/enums";
 
 function ProcessApplication() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [itemClicked, setItemClicked] = useState(false);
   const [showStepper, setShowStepper] = useState(false);
   const [currentStep, setCurrentStep] = useState("");
+  const [file, setFile] = useState<File | null>(null);
 
   const setupEventSourceConnection = async (token: string) => {
     try {
@@ -47,7 +41,7 @@ function ProcessApplication() {
         console.log("event", event);
       };
       eventSource.onmessage = (event) => {
-        const [prefix, eventType, prefix2, eventData] = event.data.split(":");
+        const [, eventType, , eventData] = event.data.split(":");
         if (eventType === "info") {
           setCurrentStep(eventData);
           if (eventData.toLowerCase() === "service completed") {
@@ -59,7 +53,7 @@ function ProcessApplication() {
         }
       };
       eventSource.onerror = (error) => {
-        const eventError = error as EventSourceError;
+        const eventError = error as IEventSourceError;
         if (eventError.error.message.includes("No activity within 45000 milliseconds")) {
           console.log("EventSource Connection Closed due to inactivity");
           eventSource.close();
@@ -73,22 +67,25 @@ function ProcessApplication() {
     }
   };
 
-  const handleClick = async () => {
+  const handleClean = async (TaskCode: ITaskCode): Promise<void> => {
+    if (!file) {
+      console.log("No File Selected");
+      return;
+    }
     setItemClicked(true);
     setCurrentStep("verifying user");
     setShowStepper(true);
-    const bodyData = {
-      pat: "7Tsbdz362meSQVE8YzfKp3FaL4XHNgappmih8KSXWxXHi9h2AfsCvLSY537WwTJAFqJ1WPzMXXXjLQfmLLjC6f2wrEvpDrVzkZkV",
-      appId: "163b0cee-8f29-452a-84d1-8b986db9fcde",
-      sdkTask: "warning",
-      taskCode: "cw0080",
-    };
+    const formData = new FormData();
+    formData.append("errorFile", file);
+    formData.append(
+      "pat",
+      "7Tsbdz362meSQVE8YzfKp3FaL4XHNgappmih8KSXWxXHi9h2AfsCvLSY537WwTJAFqJ1WPzMXXXjLQfmLLjC6f2wrEvpDrVzkZkV"
+    );
+    formData.append("appId", "163b0cee-8f29-452a-84d1-8b986db9fcde");
+    formData.append("sdkTask", "warning");
+    formData.append("taskCode", TaskCode.warningCode?.toString() || "");
     try {
-      const serverResponse = await axios.post(import.meta.env.VITE_SERVER_URL + "/services/", bodyData, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const serverResponse = await axios.post(import.meta.env.VITE_SERVER_URL + "/services/", formData);
       if (serverResponse.status === 200) {
         console.log("Data Posted Successfully", serverResponse.data);
         setCurrentStep("user verified");
@@ -141,41 +138,25 @@ function ProcessApplication() {
                   </Stack>
                 </RadioGroup>
               </Stack>
-              <Stack direction="row" alignItems="center" spacing={"6"} mb="sm">
-                <Box
-                  borderStyle={"dashed"}
-                  borderColor={"#ffbb5c"}
-                  borderWidth={"1px"}
-                  borderRadius={"md"}
-                  p={4}
-                  mb={4}
-                  width={"fit-content"}
-                >
-                  <Stack direction="row" alignItems="center" spacing={"6"} mb="sm">
-                    <Image src={uploadCloud} />
-                    <Stack direction="column" alignItems="center" mb="sm" spacing={"-0.5"}>
-                      <Text fontSize={"md"} fontWeight="bold" textAlign="left">
-                        Select a file or drag and drop here
-                      </Text>
-                      <Text color={"gray"} fontSize={"sm"} textAlign="left">
-                        Json, or Csv, file size no more than 10MB
-                      </Text>
-                    </Stack>
-                    <Button colorScheme="teal" variant="outline" color={"orange"}>
-                      Select File
-                    </Button>
-                  </Stack>
-                </Box>
-                <Button colorScheme="teal" variant="outline" color={"orange"} mb={"4"}>
-                  Analysis
-                </Button>
-              </Stack>
+              <FileUpload setFile={setFile} />
               <Text fontSize={"xl"} fontWeight="bold" textAlign="left" mb={"4"}>
                 Found Warnings
               </Text>
               <Grid templateColumns="repeat(3, 1fr)" gap={6}>
-                <WarningsCard itemClicked={itemClicked} handleClick={handleClick} />
-                <WarningsCard itemClicked={itemClicked} handleClick={handleClick} />
+                <WarningsCard
+                  itemClicked={itemClicked}
+                  handleClick={() => handleClean({ warningCode: TaskCode.cw0080 })}
+                  taskCode={TaskCode.cw0080}
+                  description="turn off event handlers of widgets for non editable data views"
+                  warningsNumber={10}
+                />
+                <WarningsCard
+                  itemClicked={itemClicked}
+                  handleClick={() => handleClean({ warningCode: TaskCode.cw0114 })}
+                  taskCode={TaskCode.cw0114}
+                  description="remove module rules that used in microflows that don't used in navigation items"
+                  warningsNumber={20}
+                />
               </Grid>
               {showStepper && (
                 <>

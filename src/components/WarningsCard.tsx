@@ -1,10 +1,6 @@
 import { Card, CardBody, Stack, Text, Divider, Button } from "@chakra-ui/react";
 import { css } from "@emotion/react";
-
-interface WarningsCardProps {
-  itemClicked: boolean;
-  handleClick: () => void;
-}
+import { IWarningsCardProps } from "../types/warningCard.types";
 
 const extendedStyles = css`
   &:hover:disabled {
@@ -14,22 +10,21 @@ const extendedStyles = css`
   }
 `;
 
-function WarningsCard({ itemClicked, handleClick }: WarningsCardProps) {
+function WarningsCard({ itemClicked, handleClick, taskCode, description, warningsNumber }: IWarningsCardProps) {
   return (
     <Card maxW="xs" boxShadow={"lg"} border={"1px"} borderColor={"gray.200"}>
       <CardBody m={"-3"}>
         <Text fontSize={"2xl"} fontWeight="bold" textAlign="center" mb={4} mt={4}>
-          200
+          {warningsNumber}
         </Text>
         <Divider borderWidth={"1.5px"} borderColor={"gray.300"} />
         <Stack direction="row" alignItems="center" spacing={"3"}>
           <Stack direction="column" alignItems="left">
             <Text fontSize={"xs"} fontWeight="bold" textAlign="left" mt={4}>
-              Code: CW0080
+              Code: {taskCode}
             </Text>
             <Text fontSize={"xs"} fontWeight="bold" textAlign="left" mt={0.5}>
-              Description: This Warning Comes when there's a widget with event handler within not editable data
-              view.
+              Description: {description}
             </Text>
           </Stack>
           <Button css={extendedStyles} variant="brand" isDisabled={itemClicked} onClick={() => handleClick()}>
