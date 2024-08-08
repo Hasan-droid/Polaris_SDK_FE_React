@@ -47,9 +47,11 @@ function ProcessApplication() {
           if (eventData.toLowerCase() === "service completed") {
             setItemClicked(false);
           }
-        } else {
+        } else if (event.data === "ping") {
+          console.log("Ping Received");
           //received error event
-          console.log("Error Event", event.data);
+        } else {
+          console.log("Error Event Received", event);
         }
       };
       eventSource.onerror = (error) => {
