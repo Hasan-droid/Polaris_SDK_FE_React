@@ -78,7 +78,6 @@ function ProcessApplication() {
     setCurrentStep("verifying user");
     setShowStepper(true);
     const formData = new FormData();
-    formData.append("errorFile", file);
     formData.append(
       "pat",
       "7Tsbdz362meSQVE8YzfKp3FaL4XHNgappmih8KSXWxXHi9h2AfsCvLSY537WwTJAFqJ1WPzMXXXjLQfmLLjC6f2wrEvpDrVzkZkV"
@@ -86,6 +85,7 @@ function ProcessApplication() {
     formData.append("appId", "163b0cee-8f29-452a-84d1-8b986db9fcde");
     formData.append("sdkTask", "warning");
     formData.append("taskCode", TaskCode.warningCode?.toString() || "");
+    formData.append("errorFile", file);
     try {
       const serverResponse = await axios.post(import.meta.env.VITE_SERVER_URL + "/services/", formData);
       if (serverResponse.status === 200) {
@@ -158,6 +158,20 @@ function ProcessApplication() {
                   taskCode={TaskCode.cw0114}
                   description="remove module rules that used in microflows that don't used in navigation items"
                   warningsNumber={20}
+                />
+                <WarningsCard
+                  itemClicked={itemClicked}
+                  handleClick={() => handleClean({ warningCode: TaskCode.cw0029 })}
+                  taskCode={TaskCode.cw0029}
+                  description="delete unused module roles"
+                  warningsNumber={70}
+                />
+                <WarningsCard
+                  itemClicked={itemClicked}
+                  handleClick={() => handleClean({ warningCode: TaskCode.cw0263 })}
+                  taskCode={TaskCode.cw0263}
+                  description="add english text to empty captions and pages title's"
+                  warningsNumber={250}
                 />
               </Grid>
               {showStepper && (

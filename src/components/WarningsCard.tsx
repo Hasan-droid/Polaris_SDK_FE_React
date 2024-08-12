@@ -1,4 +1,4 @@
-import { Card, CardBody, Stack, Text, Divider, Button } from "@chakra-ui/react";
+import { Card, CardBody, Stack, Text, Divider, Button, Box } from "@chakra-ui/react";
 import { css } from "@emotion/react";
 import { IWarningsCardProps } from "../types/warningCard.types";
 
@@ -19,14 +19,16 @@ function WarningsCard({ itemClicked, handleClick, taskCode, description, warning
         </Text>
         <Divider borderWidth={"1.5px"} borderColor={"gray.300"} />
         <Stack direction="row" alignItems="center" spacing={"3"}>
-          <Stack direction="column" alignItems="left">
-            <Text fontSize={"xs"} fontWeight="bold" textAlign="left" mt={4}>
-              Code: {taskCode}
-            </Text>
-            <Text fontSize={"xs"} fontWeight="bold" textAlign="left" mt={0.5}>
-              Description: {description}
-            </Text>
-          </Stack>
+          <Box w="xs" h="min-content">
+            <Stack direction="column" alignItems="left">
+              <Text fontSize={"xs"} fontWeight="bold" textAlign="left" mt={4}>
+                Code: {taskCode}
+              </Text>
+              <Text fontSize={"xs"} fontWeight="bold" textAlign="left" mt={0.5}>
+                Description: {description}
+              </Text>
+            </Stack>
+          </Box>
           <Button css={extendedStyles} variant="brand" isDisabled={itemClicked} onClick={() => handleClick()}>
             <Text m={"20"} fontSize={"xs"} fontWeight="bold">
               Clean
